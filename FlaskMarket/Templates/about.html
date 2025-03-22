@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block style %}
+h1 {
+    font-size: 9rem;
+    font-family: 'Times New Roman', serif;
+}
+
+/* Hero Section Styles */
+.hero-section {
+    position: relative;
+    text-align: center;
+    color: white;
+}
+
+.hero-bg {
+    width: 100%;
+    height: auto;
+    opacity: 0.6;
+}
+
+.hero-content {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Split Screen Section Styles */
+.split-screen {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 60px 20px;
+    background-color: #222222;
+}
+
+.split-screen .left-side {
+    flex: 1;
+    padding: 20px;
+    text-align: left;
+}
+
+.split-screen .left-side h2 {
+    font-size: 2rem;
+    color: #333;
+}
+
+.split-screen .left-side p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.split-screen .right-side {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+}
+
+.split-screen .right-side img {
+    width: 80%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .split-screen {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .split-screen .left-side, .split-screen .right-side {
+        width: 100%;
+        text-align: center;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <img src="{{ url_for('static', filename='images/abouthero.jpg') }}" alt="Background" class="hero-bg">
+    <div class="hero-content">
+      <h1>ABOUT US.</h1>
+      <h2 style="font-family: 'Times New Roman', serif; font-size: 4rem;">Our mission, our ambition.</h2>
+    </div>
+</div>
+
+<!-- Split Screen Section -->
+<div class="split-screen">
+    <!-- Left Side -->
+    <div class="left-side">
+        <h2 class = "text-success">Our Vision</h2>
+        <p>We aim to change the world with innovative solutions and creative ideas.</p>
+        <button type="button" class="btn btn-success" style="color: white; padding: 10px 20px; border: none;">Get Started</>
+    </div>
+
+    <!-- Right Side -->
+    <div class="right-side">
+        <img src="{{ url_for('static', filename='images/calender.png') }}" alt="Google Calendar Integration" class="feature-img">
+    </div>
+</div>
+{% endblock %}

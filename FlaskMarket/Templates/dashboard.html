@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DailyDash - Calendar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <!-- TomTom Maps SDK -->
+    <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.23.0/maps/maps-web.min.js"></script>
+    <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.23.0/services/services-web.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.23.0/maps/maps.css"/>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        footer {
+            position: relative;
+            top: 0;
+            margin-top: 0;
+        }
+
+        /*Custom Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .space-mono {
+            font-family: "Space Mono", monospace;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .page-title {
+            font-weight: 600;
+            margin: 30px 0;
+            color: #333;
+            text-align: center;
+        }
+
+        #calendar {
+            width: 90%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: 6f42c1;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .fc-header-toolbar {
+            background-color: #6366f1;
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px !important;
+        }
+
+        .fc-button {
+            background-color: #4f46e5 !important;
+            border-color: #4f46e5 !important;
+        }
+
+        .fc-button:hover {
+            background-color: #4338ca !important;
+            border-color: #4338ca !important;
+        }
+
+        .fc-today-button {
+            background-color: #10b981 !important;
+            border-color: #10b981 !important;
+        }
+
+        .fc-daygrid-day-number {
+            color: #6f42c1;
+            font-weight: 500;
+        }
+
+        .fc-event {
+            background-color: #6366f1;
+            color: white;
+            border-radius: 4px;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+
+        .fc-event:hover {
+            background-color: #4f46e5;
+            transform: scale(1.02);
+        }
+
+        .card-body {
+            padding: 1.8rem;
+        }
+
+        .card {
+            margin-bottom: 25px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #6366f1;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .stat-block {
+            text-align: center;
+        }
+
+        .news-article {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #6366f1;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+
+        .news-article:hover {
+            transform: translateY(-5px);
+        }
+
+        .news-article img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .news-article a {
+            font-size: 1.1em;
+            color: #white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .news-article a:hover {
+            color: #4f46e5;
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            background-color: #6366f1;
+            border-color: #6366f1;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 10px 15px;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+            border-color: #6366f1;
+        }
+
+        #route-map {
+            height: 300px;
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .weather-icon {
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
+            position: relative;
+        }
+
+        .weather-info {
+            text-align: center;
+        }
+
+        .temperature {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .weather-description {
+            font-size: 1.2rem;
+            color: #666;
+            margin-top: 5px;
+            text-transform: capitalize;
+        }
+
+        /* Weather Animations */
+        .sun {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            background: #ffde17;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 222, 23, 0.6);
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        .cloud {
+            position: absolute;
+            width: 70px;
+            height: 30px;
+            background: #f1f1f1;
+            border-radius: 20px;
+            animation: float 3s infinite alternate;
+        }
+
+        .cloud:before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #f1f1f1;
+            border-radius: 50%;
+            top: -20px;
+            left: 10px;
+        }
+
+        .cloud:after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #f1f1f1;
+            border-radius: 50%;
+            top: -15px;
+            left: 40px;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .rain {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: #6abbff;
+            border-radius: 2px;
+            animation: rain-drop 1s infinite linear;
+        }
+
+        .rain:nth-child(1) {
+            left: 20px;
+            top: 50px;
+            animation-delay: 0s;
+        }
+
+        .rain:nth-child(2) {
+            left: 40px;
+            top: 50px;
+            animation-delay: 0.2s;
+        }
+
+        .rain:nth-child(3) {
+            left: 60px;
+            top: 50px;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes rain-drop {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(40px); opacity: 0; }
+        }
+
+        .snow {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: snow-fall 3s infinite linear;
+        }
+
+        .snow:nth-child(1) {
+            left: 20px;
+            top: 50px;
+            animation-delay: 0s;
+        }
+
+        .snow:nth-child(2) {
+            left: 40px;
+            top: 50px;
+            animation-delay: 0.5s;
+        }
+
+        .snow:nth-child(3) {
+            left: 60px;
+            top: 50px;
+            animation-delay: 1s;
+        }
+
+        @keyframes snow-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(40px) rotate(360deg); opacity: 0; }
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #6366f1;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .task-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .task-checkbox {
+            margin-right: 10px;
+        }
+
+        .task-text {
+            flex-grow: 1;
+        }
+
+        .task-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-left: 5px;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .thunderstorm {
+            position: relative;
+        }
+
+        .lightning {
+            position: absolute;
+            top: 35px;
+            left: 45px;
+            width: 10px;
+            height: 30px;
+            background: #ffde17;
+            clip-path: polygon(50% 0, 0% 100%, 50% 70%, 100% 100%);
+            animation: lightning-flash 1.5s infinite;
+        }
+
+        @keyframes lightning-flash {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .mist {
+            position: absolute;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+            animation: mist-move 3s infinite alternate;
+        }
+
+        .mist:nth-child(1) {
+            top: 30px;
+            animation-delay: 0s;
+        }
+
+        .mist:nth-child(2) {
+            top: 45px;
+            animation-delay: 0.5s;
+        }
+
+        .mist:nth-child(3) {
+            top: 60px;
+            animation-delay: 1s;
+        }
+
+        @keyframes mist-move {
+            0% { transform: translateX(-10px); }
+            100% { transform: translateX(10px); }
+        }
+        #quote-card {
+    margin-bottom: 25px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+}
+#quote-text {
+    font-size: 18px;
+    font-weight: bold;
+}
+#quote-author {
+    font-size: 14px;
+    color: white;
+}
+button {
+    background-color: #6366f1;
+            border-color: #6366f1;
+            transition: all 0.3s;
+        }
+        .email-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.email-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.email-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+.email-sender {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.email-date {
+    font-style: italic;
+    color: #888;
+}
+
+.email-body {
+    font-size: 16px;
+}
+
+.email-subject {
+    font-weight: bold;
+    color: #333;
+}
+
+.email-snippet {
+    color: #555;
+    margin-top: 5px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+select option {
+    color: black;
+    background-color: white; /* Ensures background stays white */
+}
+
+
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <nav class="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-tachometer-alt me-2"></i>DailyDash</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarColor02">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/"><i class="fas fa-home me-1"></i> Home
+                            <span class="visually-hidden">(current)</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about"><i class="fas fa-info-circle me-1"></i> About</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bars me-1"></i> Menu</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#"><i class="fas fa-calendar me-1"></i> Calendar</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-tasks me-1"></i> Tasks</a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-chart-line me-1"></i> Analytics</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#"><i class="fas fa-cog me-1"></i> Settings</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-content">
+
+
+        <div class="row">
+            <!-- Weather Card -->
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card stat-block animate-on-scroll">
+                    <div class="card-header">
+                        <i class="fas fa-cloud-sun me-2"></i> Weather Info
+                    </div>
+                    <div class="card-body">
+                        <div class="weather-info">
+                            {% if weather %}
+                                <div class="weather-icon" id="weather-icon">
+    {% if weather %}
+        {% if 'clear' in weather.description.lower() or 'sunny' in weather.description.lower() %}
+            <div class="sun"></div>
+        {% elif 'cloud' in weather.description.lower() %}
+            <div class="cloud"></div>
+        {% elif 'rain' in weather.description.lower() or 'drizzle' in weather.description.lower() %}
+            <div class="cloud"></div>
+            <div class="rain"></div>
+            <div class="rain"></div>
+            <div class="rain"></div>
+        {% elif 'snow' in weather.description.lower() %}
+            <div class="cloud"></div>
+            <div class="snow"></div>
+            <div class="snow"></div>
+            <div class="snow"></div>
+        {% elif 'thunder' in weather.description.lower() or 'storm' in weather.description.lower() %}
+            <div class="cloud"></div>
+            <div class="thunderstorm">
+                <div class="lightning"></div>
+            </div>
+        {% elif 'mist' in weather.description.lower() or 'fog' in weather.description.lower() %}
+            <div class="mist"></div>
+            <div class="mist"></div>
+            <div class="mist"></div>
+        {% else %}
+            <div class="cloud"></div>
+        {% endif %}
+    {% else %}
+        <div class="cloud"></div>
+    {% endif %}
+</div>
+                                <div class="temperature">{{ weather.temperature }}°C</div>
+                                <div class="weather-description">{{ weather.description }}</div>
+                            {% else %}
+                                <div class="weather-icon">
+                                    <div class="cloud"></div>
+                                </div>
+                                <div class="temperature">--°C</div>
+                                <div class="weather-description">Unable to fetch weather data</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quote Card -->
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card stat-block animate-on-scroll">
+                    <div class="card-header">
+                        <i></i> QOTD
+                    </div>
+                    <div id="quote-card" class = "card-body">
+                        <p id="quote-text">Loading quote...</p>
+                        <p id="quote-author"></p>
+                         <button onclick="fetchQuote()" class = "btn btn-primary btn-sm w-100">New Quote</button>
+                    </div>
+
+                </div>
+            </div>
+            <!-- This Day in History Card -->
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="card stat-block animate-on-scroll">
+        <div class="card-header">
+            <i class="fas fa-history me-2"></i> This Day in History
+        </div>
+        <div class="card-body">
+            <p id="history-event">Loading...</p>
+            <a id="history-link" href="#" target="_blank" style="display: none;">Read more</a>
+        </div>
+    </div>
+</div>
+
+
+            <!-- Calendar Overview Card -->
+            <<div class="email-cards">
+    {% for email in email_data %}
+        <div class="email-card">
+            <div class="email-header">
+                <span class="email-sender">{{ email.sender }}</span>
+                <span class="email-date">{{ email.date }}</span>
+            </div>
+            <div class="email-body">
+                <h4 class="email-subject">{{ email.subject }}</h4>
+                <p class="email-snippet">{{ email.snippet }}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+        </div>
+
+        <!-- Calendar -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card animate-on-scroll">
+                    <div class="card-header">
+                        <i class="fas fa-calendar-alt me-2"></i> Your Calendar
+                    </div>
+                    <div class="card-body">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks and TomTom row -->
+        <div class="row mt-4">
+
+<div class="col-lg-6 col-md-12 col-sm-12">
+    <div class="card animate-on-scroll">
+        <div class="card-header">
+            <i class="fas fa-tasks me-2"></i> Tasks
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">To-Do List</h5>
+            </div>
+
+            <!-- Task Input Form -->
+            <form id="task-form" class="mb-3">
+                <div class="input-group">
+                    <input type="text" id="task-input" class="form-control" placeholder="Add a new task..." required>
+                    <select id="task-priority" class="form-select" style="max-width: 120px;">
+                        <option value="bg-info">Normal</option>
+                        <option value="bg-warning">Important</option>
+                        <option value="bg-danger">Urgent</option>
+                        <option value="bg-success">Low</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                <div class="form-text"><i class="fas fa-info-circle me-1"></i> Select priority and press Add or Enter</div>
+            </form>
+
+            <!-- Tasks Container -->
+            <div id="tasks-container">
+                <!-- Tasks will be added here by JavaScript -->
+                <div class="text-center text-muted py-3" id="no-tasks-message">
+                    <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                    <p>No tasks yet. Add one above!</p>
+                </div>
+            </div>
+
+            <!-- Task Stats -->
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                <div id="task-stats">
+                    <span>0 tasks</span> • <span>0 completed</span>
+                </div>
+                <button id="clear-completed-btn" class="btn btn-outline-secondary btn-sm" disabled>
+                    Clear Completed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- TomTom Traffic Card -->
+            <div class="col-lg-6 col-md-12 col-sm-12">
+                <div class="card animate-on-scroll">
+                    <div class="card-header">
+                        <i class="fas fa-map-marked-alt me-2"></i> TomTom Traffic & Routing
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="destination-input" class="form-label">Enter destination:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="destination-input" placeholder="Enter a destination (e.g., Central Park, New York)">
+                                <button class="btn btn-primary" id="calculate-route-btn">
+                                    <i class="fas fa-route me-1"></i> Calculate Route
+                                </button>
+                            </div>
+                            <div class="form-text"><i class="fas fa-info-circle me-1"></i> Your current location will be used as the starting point.</div>
+                            <div id="location-status" class="mt-2"></div>
+                        </div>
+                        <h5 class="card-title">Traffic Info & Route</h5>
+                        <div id="traffic-info">
+                            <p id="travel-time"><i class="fas fa-hourglass-half me-1"></i> Fetching estimated time...</p>
+                        </div>
+                        <div id="route-map"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- News Headlines -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card animate-on-scroll">
+                    <div class="card-header">
+                        <i class="fas fa-newspaper me-2"></i> Top News Headlines
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="news-container">
+                            <!-- News will be inserted here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (for navbar collapse and other features) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+  var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+
+  let currentEvent = null;
+
+  // Initialize the calendar
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    editable: true,
+    selectable: true,
+    selectMirror: true,
+    dayMaxEvents: true,
+
+    // Date selection - when a user selects a date range
+    select: function(info) {
+      // Clear form
+      document.getElementById('eventForm').reset();
+      document.getElementById('eventId').value = '';
+
+      // Set initial dates
+      document.getElementById('eventStart').value = formatDateTimeForInput(info.start);
+      if (info.end) {
+        document.getElementById('eventEnd').value = formatDateTimeForInput(info.end);
+      }
+
+      // Set all day if applicable
+      document.getElementById('eventAllDay').checked = info.allDay;
+
+      // Hide delete button for new events
+      document.getElementById('deleteEventBtn').style.display = 'none';
+
+      // Show the modal
+      document.getElementById('eventModalLabel').textContent = 'Create Event';
+      eventModal.show();
+
+      // Clear the selection
+      calendar.unselect();
+
+      // Set currentEvent to null since we're creating a new event
+      currentEvent = null;
+    },
+
+    // Event click handler
+    eventClick: function(info) {
+      // Store reference to the clicked event
+      currentEvent = info.event;
+
+      // Populate form with event data
+      document.getElementById('eventId').value = info.event.id;
+      document.getElementById('eventTitle').value = info.event.title;
+
+      // Format dates
+      if (info.event.start) {
+        document.getElementById('eventStart').value = formatDateTimeForInput(info.event.start);
+      }
+      if (info.event.end) {
+        document.getElementById('eventEnd').value = formatDateTimeForInput(info.event.end);
+      }
+
+      // Set all day checkbox
+      document.getElementById('eventAllDay').checked = info.event.allDay;
+
+      // Set color if available
+      if (info.event.backgroundColor) {
+        document.getElementById('eventColor').value = info.event.backgroundColor;
+      }
+
+      // Set description if available (using extendedProps)
+      const description = info.event.extendedProps.description || '';
+      document.getElementById('eventDescription').value = description;
+
+      // Show delete button for existing events
+      document.getElementById('deleteEventBtn').style.display = 'block';
+
+      // Show the modal
+      document.getElementById('eventModalLabel').textContent = 'Edit Event';
+      eventModal.show();
+    },
+
+    // When an event is dragged and dropped
+    eventDrop: function(info) {
+      updateEvent(info.event);
+    },
+
+    // When an event is resized
+    eventResize: function(info) {
+      updateEvent(info.event);
+    },
+
+    // Load events from server
+    events: '/api/calendar-events'
+  });
+
+  calendar.render();
+
+  // Save button click handler
+  document.getElementById('saveEventBtn').addEventListener('click', function() {
+    const title = document.getElementById('eventTitle').value;
+    if (!title) {
+      alert('Please enter an event title');
+      return;
+    }
+
+    // Get form values
+    const eventData = {
+      title: title,
+      start: document.getElementById('eventStart').value,
+      end: document.getElementById('eventEnd').value || null,
+      allDay: document.getElementById('eventAllDay').checked,
+      backgroundColor: document.getElementById('eventColor').value,
+      extendedProps: {
+        description: document.getElementById('eventDescription').value
+      }
+    };
+
+    if (currentEvent) {
+      // Update existing event
+      eventData.id = currentEvent.id;
+
+      // Update the event on the calendar
+      currentEvent.setProp('title', eventData.title);
+      currentEvent.setProp('backgroundColor', eventData.backgroundColor);
+      currentEvent.setStart(eventData.start);
+      currentEvent.setEnd(eventData.end);
+      currentEvent.setAllDay(eventData.allDay);
+      currentEvent.setExtendedProp('description', eventData.extendedProps.description);
+
+      // Send update to server
+      updateEvent(currentEvent);
+    } else {
+      // Create new event
+      // Add event to calendar
+      const newEvent = calendar.addEvent(eventData);
+
+      // Save to server
+      saveEvent(eventData, function(savedEvent) {
+        // Update the ID with the one from the server
+        if (savedEvent.id) {
+          newEvent.setProp('id', savedEvent.id);
+        }
+      });
+    }
+
+    // Close the modal
+    eventModal.hide();
+  });
+
+  // Delete button click handler
+  document.getElementById('deleteEventBtn').addEventListener('click', function() {
+    if (currentEvent && confirm('Are you sure you want to delete this event?')) {
+      // Remove from calendar
+      currentEvent.remove();
+
+      // Delete from server
+      deleteEvent(currentEvent.id);
+
+      // Close the modal
+      eventModal.hide();
+    }
+  });
+
+  // Helper function to format date for input fields
+  function formatDateTimeForInput(date) {
+    const d = new Date(date);
+    return d.toISOString().slice(0, 16);
+  }
+
+  // Function to save new event to server
+  function saveEvent(eventData, callback) {
+    fetch('/api/calendar-events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Event saved:', data);
+      if (callback) callback(data);
+    })
+    .catch((error) => {
+      console.error('Error saving event:', error);
+    });
+  }
+
+  // Function to update existing event
+  function updateEvent(event) {
+    const eventData = {
+      id: event.id,
+      title: event.title,
+      start: event.startStr || event.start.toISOString(),
+      end: event.endStr || (event.end ? event.end.toISOString() : null),
+      allDay: event.allDay,
+      backgroundColor: event.backgroundColor,
+      extendedProps: event.extendedProps
+    };
+
+    fetch(`/api/calendar-events/${event.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Event updated:', data);
+    })
+    .catch((error) => {
+      console.error('Error updating event:', error);
+    });
+  }
+
+  // Function to delete event
+  function deleteEvent(eventId) {
+    fetch(`/api/calendar-events/${eventId}`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Event deleted:', data);
+    })
+    .catch((error) => {
+      console.error('Error deleting event:', error);
+    });
+  }
+});
+
+    // Create animated weather icon based on OpenWeather data
+    function createWeatherIcon(weatherInfo) {
+        if (!weatherInfo) return;
+
+        const iconContainer = document.getElementById('weather-icon');
+        if (!iconContainer) return;
+
+        const weatherCode = weatherInfo.description.toLowerCase();
+        iconContainer.innerHTML = '';
+
+        // Create weather icon based on weather description
+        if (weatherCode.includes('clear') || weatherCode.includes('sunny')) {
+            iconContainer.innerHTML = '<div class="sun"></div>';
+        }
+        else if (weatherCode.includes('cloud')) {
+            iconContainer.innerHTML = '<div class="cloud"></div>';
+        }
+        else if (weatherCode.includes('rain') || weatherCode.includes('drizzle')) {
+            iconContainer.innerHTML = `
+                <div class="cloud"></div>
+                <div class="rain"></div>
+                <div class="rain"></div>
+                <div class="rain"></div>
+            `;
+        }
+        else if (weatherCode.includes('snow')) {
+            iconContainer.innerHTML = `
+                <div class="cloud"></div>
+                <div class="snow"></div>
+                <div class="snow"></div>
+                <div class="snow"></div>
+            `;
+        }
+        else if (weatherCode.includes('thunder') || weatherCode.includes('storm')) {
+            iconContainer.innerHTML = `
+                <div class="cloud"></div>
+                <div class="thunderstorm">
+                    <div class="lightning"></div>
+                </div>
+            `;
+        }
+        else if (weatherCode.includes('mist') || weatherCode.includes('fog')) {
+            iconContainer.innerHTML = `
+                <div class="mist"></div>
+                <div class="mist"></div>
+                <div class="mist"></div>
+            `;
+        }
+        else {
+            // Default to partly cloudy
+            iconContainer.innerHTML = '<div class="cloud"></div>';
+        }
+    }
+
+    // Fetch weather data and create icon
+    // This is inside the Jinja2 conditional in the original code
+    // We'll assume it's properly handled in the template
+
+    // Animation on scroll
+    function checkScroll() {
+        const animateElements = document.querySelectorAll('.animate-on-scroll');
+        animateElements.forEach(element => {
+            const elementPosition = element.getBoundingClientRect().top;
+            const screenPosition = window.innerHeight * 0.85;
+
+            if (elementPosition < screenPosition) {
+                element.classList.add('visible');
+            }
+        });
+    }
+
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); // Check on page load
+
+    // Fetch news headlines - Fixed code
+   fetch('/get_top_headlines')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        const newsContainer = document.getElementById('news-container');
+        newsContainer.innerHTML = ''; // Clear previous content
+
+        if (data && data.length > 0) {
+            data.slice(0, 3).forEach(news => {
+                const newsTitle = news.title || 'No title available';
+                const newsDescription = news.description
+                    ? news.description.substring(0, 100) + '...'
+                    : 'No description available';
+
+
+                const articleElement = document.createElement('div');
+                articleElement.classList.add('news-article');
+                articleElement.innerHTML = `
+                    <h6><a href="${news.url}" target="_blank">${newsTitle}</a></h6>
+                    <p>${newsDescription}</p>
+
+                    ${news.image ? `<img src="${news.image}" alt="News image" class="news-image" />` : ''}
+                `;
+                newsContainer.appendChild(articleElement);
+            })
+        } else {
+            newsContainer.innerHTML = '<div class="col-12"><p class="text-center">No news available at this time.</p></div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching news:', error);
+        document.getElementById('news-container').innerHTML =
+            '<div class="col-12"><p class="text-center">Error loading news. Please try again later.</p></div>';
+    });
+
+
+    // TomTom map variables
+    let map;
+    let currentLocationMarker;
+    let destinationMarker;
+    let routeLayer;
+
+    // Initialize the map
+    function initializeMap() {
+        const locationStatus = document.getElementById('location-status');
+
+        // Check if geolocation is available
+        if (!navigator.geolocation) {
+            locationStatus.innerHTML = '<div class="alert alert-danger">Geolocation is not supported by your browser</div>';
+            return;
+        }
+
+        // Default map center (will be updated with user's location)
+        map = tt.map({
+            key: 'fAiV4PlIH65x5G4ALgUGaSWzl6mFDHAL', // This should be defined elsewhere or passed from the server
+            container: 'route-map',
+            center: [-74.006, 40.7128], // Default to New York City
+            zoom: 13
+        });
+
+        // Add map controls
+        map.addControl(new tt.NavigationControl());
+        map.addControl(new tt.FullscreenControl());
+
+        // Get user's current location
+        navigator.geolocation.getCurrentPosition(position => {
+            const userLocation = [position.coords.longitude, position.coords.latitude];
+
+            // Center map on user's location
+            map.setCenter(userLocation);
+
+            // Add marker for current location
+            currentLocationMarker = new tt.Marker().setLngLat(userLocation).addTo(map);
+
+            locationStatus.innerHTML = '<div class="alert alert-success">Your location found successfully!</div>';
+            setTimeout(() => {
+                locationStatus.innerHTML = '';
+            }, 3000);
+        }, error => {
+            let errorMessage = 'Unable to retrievr location';
+            if (error.code === 1) {
+                errorMessage = 'Permission denied. Please allow location access.';
+            }
+            locationStatus.innerHTML = `<div class="alert alert-warning">${errorMessage}</div>`;
+        });
+    }
+
+    // Calculate and display route
+    document.getElementById('calculate-route-btn').addEventListener('click', function() {
+        const destinationInput = document.getElementById('destination-input').value.trim();
+        const travelTimeElement = document.getElementById('travel-time');
+
+        if (!destinationInput) {
+            travelTimeElement.innerHTML = '<div class="alert alert-warning">Please enter a destination</div>';
+            return;
+        }
+
+        if (!map || !currentLocationMarker) {
+            travelTimeElement.innerHTML = '<div class="alert alert-warning">Please wait for map to initialize</div>';
+            return;
+        }
+
+        travelTimeElement.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Calculating route...';
+
+        // Get current location coordinates
+        const startPoint = currentLocationMarker.getLngLat();
+
+        // Search for destination coordinates using TomTom search API
+        tt.services.fuzzySearch({
+            key: 'fAiV4PlIH65x5G4ALgUGaSWzl6mFDHAL', // This should be defined elsewhere or passed from the server
+            query: destinationInput
+        }).then(response => {
+            if (response.results && response.results.length > 0) {
+                const destination = response.results[0].position;
+
+                // Clear previous destination marker and route
+                if (destinationMarker) destinationMarker.remove();
+                if (map.getLayer('route')) {
+                    map.removeLayer('route');
+                    map.removeSource('route');
+                }
+
+                // Add destination marker
+                destinationMarker = new tt.Marker().setLngLat([destination.lng, destination.lat]).addTo(map);
+
+                // Calculate route
+                tt.services.calculateRoute({
+                    key: 'fAiV4PlIH65x5G4ALgUGaSWzl6mFDHAL', // This should be defined elsewhere or passed from the server
+                    traffic: true,
+                    locations: `${startPoint.lng},${startPoint.lat}:${destination.lng},${destination.lat}`
+                }).then(routeData => {
+                    const geoJson = routeData.toGeoJson();
+                    const route = geoJson.features[0];
+
+                    // Display route on map
+                    if (map.getLayer('route')) {
+                        map.removeLayer('route');
+                        map.removeSource('route');
+                    }
+
+                    map.addSource('route', {
+                        type: 'geojson',
+                        data: route.geometry
+                    });
+
+                    map.addLayer({
+                        id: 'route',
+                        type: 'line',
+                        source: 'route',
+                        paint: {
+                            'line-color': '#4f46e5',
+                            'line-width': 6
+                        }
+                    });
+
+                    // Fit map to show the entire route
+                    const bounds = new tt.LngLatBounds();
+                    route.geometry.coordinates.forEach(point => {
+                        bounds.extend(point);
+                    });
+                    map.fitBounds(bounds, { padding: 50 });
+
+                    // Display travel time
+                    const travelTimeMinutes = Math.round(route.properties.summary.travelTimeInSeconds / 60);
+                    const distance = (route.properties.summary.lengthInMeters / 1000).toFixed(1);
+
+                    travelTimeElement.innerHTML = `
+                        <div class="alert alert-info">
+                            <div><i class="fas fa-clock me-1"></i> Travel Time: <strong>${travelTimeMinutes} minutes</strong></div>
+                            <div><i class="fas fa-road me-1"></i> Distance: <strong>${distance} km</strong></div>
+                            <div><i class="fas fa-map-marker-alt me-1"></i> Destination: <strong>${response.results[0].address.freeformAddress}</strong></div>
+                        </div>
+                    `;
+                }).catch(error => {
+                    console.error('Error calculating route:', error);
+                    travelTimeElement.innerHTML = '<div class="alert alert-danger">Unable to calculate route to destination</div>';
+                });
+            } else {
+                travelTimeElement.innerHTML = '<div class="alert alert-warning">Destination not found. Please try another location.</div>';
+            }
+        }).catch(error => {
+            console.error('Error finding destination:', error);
+            travelTimeElement.innerHTML = '<div class="alert alert-danger">Error finding destination</div>';
+        });
+    });
+
+    // Initialize map when DOM content is loaded
+    initializeMap();
+
+    // Create a footer dynamically to ensure it stays at the bottom
+    const wrapper = document.querySelector('.wrapper');
+    const footer = document.createElement('footer');
+    footer.className = 'bg-dark text-light py-3 mt-4';
+    footer.innerHTML = `
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 DailyDash. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-light me-3"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-light me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-light me-3"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-light"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    `;
+    wrapper.appendChild(footer);
+
+
+const tomtomApiKey = document.currentScript.getAttribute('data-tomtom-key') || 'fAiV4PlIH65x5G4ALgUGaSWzl6mFDHAL';
+</script>
+<script>
+
+
+// To-Do List Functionality
+const taskForm = document.getElementById('task-form');
+const taskInput = document.getElementById('task-input');
+const taskPriority = document.getElementById('task-priority');
+const tasksContainer = document.getElementById('tasks-container');
+const noTasksMessage = document.getElementById('no-tasks-message');
+const taskStats = document.getElementById('task-stats');
+const clearCompletedBtn = document.getElementById('clear-completed-btn');
+
+// Load tasks from localStorage
+let tasks = JSON.parse(localStorage.getItem('dailyDashTasks')) || [];
+
+// Render tasks function
+function renderTasks() {
+    if (tasks.length === 0) {
+        noTasksMessage.style.display = 'block';
+        tasksContainer.innerHTML = '';
+        tasksContainer.appendChild(noTasksMessage);
+    } else {
+        noTasksMessage.style.display = 'none';
+
+        // Clear container before rendering
+        tasksContainer.innerHTML = '';
+
+        // Add each task
+        tasks.forEach((task, index) => {
+            const taskItem = document.createElement('div');
+            taskItem.className = `task-item ${task.completed ? 'bg-light' : ''}`;
+            taskItem.dataset.index = index;
+
+            taskItem.innerHTML = `
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input task-checkbox"
+                           id="task-${index}" ${task.completed ? 'checked' : ''}>
+                    <label class="form-check-label ${task.completed ? 'text-decoration-line-through text-muted' : ''}"
+                           for="task-${index}">${task.text}</label>
+                </div>
+                <div class="task-actions">
+                    <span class="badge ${task.priority} me-2">${getPriorityText(task.priority)}</span>
+                    <button class="btn btn-sm text-danger delete-task-btn">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+
+            tasksContainer.appendChild(taskItem);
+        });
+
+        // Add event listeners to checkboxes and delete buttons
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', toggleTaskCompletion);
+        });
+
+        document.querySelectorAll('.delete-task-btn').forEach(button => {
+            button.addEventListener('click', deleteTask);
+        });
+    }
+
+    // Update task stats
+    updateTaskStats();
+}
+
+// Get priority text from class
+function getPriorityText(priorityClass) {
+    switch(priorityClass) {
+        case 'bg-danger': return 'Urgent';
+        case 'bg-warning': return 'Important';
+        case 'bg-success': return 'Low';
+        default: return 'Normal';
+    }
+}
+
+// Add task function
+function addTask(e) {
+    e.preventDefault();
+
+    const taskText = taskInput.value.trim();
+    if (!taskText) return;
+
+    // Create new task object
+    const newTask = {
+        text: taskText,
+        priority: taskPriority.value,
+        completed: false,
+        dateAdded: new Date().toISOString()
+    };
+
+    // Add to tasks array
+    tasks.push(newTask);
+
+    // Save to localStorage
+    saveTasksToLocalStorage();
+
+    // Clear form and render tasks
+    taskInput.value = '';
+    renderTasks();
+
+    // Add animation effect to the new task
+    const lastTaskEl = tasksContainer.lastElementChild;
+    lastTaskEl.classList.add('animate__animated', 'animate__fadeIn');
+}
+
+// Toggle task completion
+function toggleTaskCompletion(e) {
+    const index = parseInt(e.target.closest('.task-item').dataset.index);
+    tasks[index].completed = e.target.checked;
+
+    saveTasksToLocalStorage();
+    renderTasks();
+}
+
+// Delete task
+function deleteTask(e) {
+    const taskItem = e.target.closest('.task-item');
+    const index = parseInt(taskItem.dataset.index);
+
+    // Add animation before removing
+    taskItem.classList.add('animate__animated', 'animate__fadeOut');
+
+    taskItem.addEventListener('animationend', () => {
+        tasks.splice(index, 1);
+        saveTasksToLocalStorage();
+        renderTasks();
+    });
+}
+
+// Clear completed tasks
+function clearCompletedTasks() {
+    tasks = tasks.filter(task => !task.completed);
+    saveTasksToLocalStorage();
+    renderTasks();
+}
+
+// Update task statistics
+function updateTaskStats() {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.completed).length;
+
+    taskStats.innerHTML = `<span>${totalTasks} task${totalTasks !== 1 ? 's' : ''}</span> • <span>${completedTasks} completed</span>`;
+
+    // Enable/disable clear completed button
+    clearCompletedBtn.disabled = completedTasks === 0;
+}
+
+// Save tasks to localStorage
+function saveTasksToLocalStorage() {
+    localStorage.setItem('dailyDashTasks', JSON.stringify(tasks));
+}
+
+// Event listeners
+taskForm.addEventListener('submit', addTask);
+clearCompletedBtn.addEventListener('click', clearCompletedTasks);
+
+// Add some CSS to the document
+const taskStyles = document.createElement('style');
+taskStyles.textContent = `
+    .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 12px 15px;
+        background-color: #6366f1;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .task-item:hover {
+        background-color: #6366f1;
+        transform: translateX(5px);
+    }
+
+    .task-item.bg-light {
+        opacity: 0.8;
+    }
+
+    .task-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .delete-task-btn {
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+
+    .task-item:hover .delete-task-btn {
+        opacity: 1;
+    }
+
+    /* Optional: Add animation classes */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(-10px); }
+    }
+
+    .animate__animated {
+        animation-duration: 0.5s;
+    }
+
+    .animate__fadeIn {
+        animation-name: fadeIn;
+    }
+
+    .animate__fadeOut {
+        animation-name: fadeOut;
+    }
+`;
+document.head.appendChild(taskStyles);
+
+// Initialize tasks
+renderTasks();
+</script>
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eventModalLabel">Manage Event</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="eventForm">
+          <input type="hidden" id="eventId">
+          <div class="mb-3">
+            <label for="eventTitle" class="form-label">Event Title</label>
+            <input type="text" class="form-control" id="eventTitle" required>
+          </div>
+          <div class="mb-3">
+            <label for="eventStart" class="form-label">Start Date/Time</label>
+            <input type="datetime-local" class="form-control" id="eventStart" required>
+          </div>
+          <div class="mb-3">
+            <label for="eventEnd" class="form-label">End Date/Time</label>
+            <input type="datetime-local" class="form-control" id="eventEnd">
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="eventAllDay">
+            <label class="form-check-label" for="eventAllDay">
+              All Day Event
+            </label>
+          </div>
+          <div class="mb-3">
+            <label for="eventColor" class="form-label">Event Color</label>
+            <select class="form-control" id="eventColor">
+              <option value="#6366f1">Default (Purple)</option>
+              <option value="#ef4444">Red</option>
+              <option value="#f59e0b">Orange</option>
+              <option value="#10b981">Green</option>
+              <option value="#3b82f6">Blue</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="eventDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="eventDescription" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger me-auto" id="deleteEventBtn">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveEventBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+    async function fetchQuote() {
+    const response = await fetch("/quote");
+    const data = await response.json();
+    document.getElementById("quote-text").textContent = `"${data.quote}"`;
+    document.getElementById("quote-author").textContent = `- ${data.author}`;
+}
+
+// Load quote on page load
+fetchQuote();
+
+</script>
+<script>
+
+    fetch('/this-day-in-history')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById('history-event').innerText = "No history data available.";
+        } else {
+            document.getElementById('history-event').innerText = data.year + ": " + data.text;
+            if (data.link) {
+                document.getElementById('history-link').href = data.link;
+                document.getElementById('history-link').style.display = "block";
+            }
+        }
+    })
+    .catch(error => {
+        document.getElementById('history-event').innerText = "Failed to load history event.";
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+
