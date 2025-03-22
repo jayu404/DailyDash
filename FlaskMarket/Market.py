@@ -22,9 +22,9 @@ CLIENT_SECRETS_FILE = 'credentials.json'
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/gmail.readonly']
 API_NAME = 'calendar'
 API_VERSION = 'v3'
-API_KEY = "ed70a48eee5eec1d9baa14b214228cf0"
-CITY = 'Fremont'
-NEWS_API_KEY = "9cec027b5eee4bc9906b803e382b5c84"
+API_KEY = ""
+CITY = ''
+NEWS_API_KEY = ""
 
 @app.route('/')
 def index():
